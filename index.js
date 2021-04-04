@@ -178,9 +178,6 @@ module.exports = class XSOverlayDiscordNotifications extends Plugin {
     inject('xsoverlay-discord-notifications', modules, 'makeTextChatNotification', args => {
       const [ channel, msg, author ] = args;
 
-      console.log(channel);
-      console.log(msg);
-
       const formattedMessage = formatMessage(channel, msg, author);
 
       fetch(author.avatarURL).then(response => response.arrayBuffer()).then(buffer => {
