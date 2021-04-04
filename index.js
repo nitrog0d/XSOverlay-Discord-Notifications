@@ -37,6 +37,21 @@ function formatEmotes (content) {
   return content;
 }
 
+function formatChannelMentions (content) {
+  const matches = content.match(/<(#\d+)>/g);
+  if (!matches) {
+    return content;
+  }
+
+  for (const match of matches) {
+    let channelId = match.split('<#')[1];
+    channelId = channelId.substring(0, channelId.length - 1);
+    content = content.split(match).join(`<b><color=${blurple}>#${getChannel(channelId).name}</color></b>`);
+  }
+
+  return content;
+}
+
 function formatMessage (channel, msg, author) {
   if (msg.attachments.length > 0) {
     return `Uploaded ${msg.attachments[0].filename}`;
@@ -93,6 +108,7 @@ function formatMessage (channel, msg, author) {
   }
 
   temp = formatEmotes(temp);
+  temp = formatChannelMentions(temp);
 
   return temp;
 }
@@ -161,6 +177,9 @@ module.exports = class XSOverlayDiscordNotifications extends Plugin {
 
     inject('xsoverlay-discord-notifications', modules, 'makeTextChatNotification', args => {
       const [ channel, msg, author ] = args;
+
+      console.log(channel);
+      console.log(msg);
 
       const formattedMessage = formatMessage(channel, msg, author);
 
