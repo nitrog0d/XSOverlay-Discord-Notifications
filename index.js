@@ -9,12 +9,6 @@ const { getGuild } = getModule([ 'getGuild' ], false);
 
 const blurple = '#7289da';
 
-function decimalToHex (d) {
-  let hex = parseInt(d, 16);
-  hex = '000000'.substr(0, 6 - hex.length) + hex;
-  return hex;
-}
-
 function sendToXSOverlay (data) {
   const server = dgram.createSocket('udp4');
   server.send(data, 42069, '127.0.0.1', () => {
@@ -94,7 +88,7 @@ function formatMessage (channel, msg, author) {
     const { roles } = getGuild(msg.guild_id);
     for (const roleId of msg.mention_roles) {
       const role = roles[roleId];
-      temp = temp.split(`<@&${roleId}>`).join(`<b><color=#${decimalToHex(role.color)}>@${role.name}</color></b>`);
+      temp = temp.split(`<@&${roleId}>`).join(`<b><color=#${parseInt(role.color).toString(16)}>@${role.name}</color></b>`);
     }
   }
 
