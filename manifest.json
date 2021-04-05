@@ -1,7 +1,7 @@
 {
-  "name": "XSOverlay Notifications",
+  "name": "XSOverlay Discord Notifications",
   "version": "1.0.0",
-  "description": "Sends notifications to XSOverlay.",
+  "description": "Sends Discord notifications to XSOverlay.",
   "author": "nitro.#0007",
   "license": "Unlicensed"
 }

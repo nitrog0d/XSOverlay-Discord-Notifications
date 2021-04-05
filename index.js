@@ -8,6 +8,7 @@ const { getChannel } = getModule([ 'getChannel' ], false);
 const { getGuild } = getModule([ 'getGuild' ], false);
 
 const blurple = '#7289da';
+const booster = '#ff73fa';
 
 function sendToXSOverlay (data) {
   const server = dgram.createSocket('udp4');
@@ -25,20 +26,20 @@ function messageTypeToBoostLevel (type) {
 }
 
 function formatEmotes (content) {
-  const matches = content.match(/<(a?:\w+:)\d+>/g);
+  const matches = content.match(new RegExp('(<a?:\\w+:\\d+>)', 'g'));
   if (!matches) {
     return content;
   }
 
   for (const match of matches) {
-    content = content.split(match).join(`:${match.split(':')[1]}:`);
+    content = content.replace(new RegExp(`${match}`, 'g'), `:${match.split(':')[1]}:`);
   }
 
   return content;
 }
 
 function formatChannelMentions (content) {
-  const matches = content.match(/<(#\d+)>/g);
+  const matches = content.match(new RegExp('<(#\\d+)>', 'g'));
   if (!matches) {
     return content;
   }
@@ -46,18 +47,15 @@ function formatChannelMentions (content) {
   for (const match of matches) {
     let channelId = match.split('<#')[1];
     channelId = channelId.substring(0, channelId.length - 1);
-    content = content.split(match).join(`<b><color=${blurple}>#${getChannel(channelId).name}</color></b>`);
+    content = content.replace(new RegExp(`${match}`, 'g'), `<b><color=${blurple}>#${getChannel(channelId).name}</color></b>`);
   }
 
   return content;
 }
 
 function formatMessage (channel, msg, author) {
-  if (msg.attachments.length > 0) {
-    return `Uploaded ${msg.attachments[0].filename}`;
-  }
-
   let temp = msg.content;
+
   switch (msg.type) {
     // Who the fuck cares about i18n anyway
     case 0:
@@ -78,11 +76,11 @@ function formatMessage (channel, msg, author) {
     case 7:
       return `<b>${author.username}</b> joined the guild.`;
     case 8:
-      return `<b>${author.username}</b> just boosted the server!`;
+      return `<b>${author.username}</b> just <b><color=${booster}boosted</color></b> the server!`;
     case 9:
     case 10:
     case 11:
-      return `<b>${author.username}</b> just boosted the server! <b>${getGuild(msg.guild_id).name}</b> has achieved <b>Level ${messageTypeToBoostLevel(msg.type)}!</b>`;
+      return `<b>${author.username}</b> just <b><color=${booster}boosted</color></b> the server! <b>${getGuild(msg.guild_id).name}</b> has achieved <b>Level ${messageTypeToBoostLevel(msg.type)}!</b>`;
     case 12:
       return `<b>${author.username}</b> has added <b>${msg.content}</b> notifications to this channel.`;
     case 14:
@@ -91,26 +89,38 @@ function formatMessage (channel, msg, author) {
       return `Type of message (${msg.type}) not implemented. Please check yourself.`;
   }
 
-  temp = temp.split('@everyone').join(`<b><color=${blurple}>@everyone</color></b>`);
-  temp = temp.split('@here').join(`<b><color=${blurple}>@here</color></b>`);
+  if (temp.length === 0 && msg.attachments.length > 0) {
+    return `Uploaded ${msg.attachments[0].filename}`;
+  }
+
+  if (temp.length === 0 && msg.embeds > 0) {
+    temp = msg.embeds[0].title;
+  }
+
+  temp = temp.replace(new RegExp('@everyone', 'g'), `<b><color=${blurple}>@everyone</color></b>`);
+  temp = temp.replace(new RegExp('@here', 'g'), `<b><color=${blurple}>@here</color></b>`);
 
   for (const mention of msg.mentions) {
-    temp = temp.split(`<@${mention.id}>`).join(`<b><color=${blurple}>@${mention.username}</color></b>`);
-    temp = temp.split(`<@!${mention.id}>`).join(`<b><color=${blurple}>@${mention.username}</color></b>`);
+    temp = temp.replace(new RegExp(`<@!?${mention.id}>`, 'g'), `<b><color=${blurple}>@${mention.username}</color></b>`);
   }
 
   if (msg.mention_roles.length > 0) {
     const { roles } = getGuild(msg.guild_id);
     for (const roleId of msg.mention_roles) {
       const role = roles[roleId];
-      temp = temp.split(`<@&${roleId}>`).join(`<b><color=#${parseInt(role.color).toString(16)}>@${role.name}</color></b>`);
+      temp = temp.replace(new RegExp(`<@&${roleId}>`, 'g'), `<b><color=#${parseInt(role.color).toString(16)}>@${role.name}</color></b>`);
     }
   }
 
   temp = formatEmotes(temp);
   temp = formatChannelMentions(temp);
 
-  return temp;
+  return temp.length !== 0 ? temp : 'Empty';
+}
+
+function clearMessage (content) {
+  content = content.replace(new RegExp('<[^>]*>', 'g'), '');
+  return content;
 }
 
 function getUserFromRawRecipients (userId, recipients) {
@@ -185,7 +195,7 @@ module.exports = class XSOverlayDiscordNotifications extends Plugin {
           messageType: 1,
           index: 0,
           timeout: parseFloat(this.settings.get('notificationTimeout', 5)),
-          height: calculateHeight(formattedMessage),
+          height: calculateHeight(clearMessage(formattedMessage)),
           opacity: parseFloat(this.settings.get('notificationOpacity', 0.9)),
           volume: 0,
           audioPath: '',
