@@ -74,7 +74,7 @@ function formatMessage (channel, msg, author) {
     case 6:
       return `<b>${author.username}</b> pinned <b>a message</b> to this channel.`;
     case 7:
-      return `<b>${author.username}</b> joined the guild.`;
+      return `<b>${author.username}</b> joined the server.`;
     case 8:
       return `<b>${author.username}</b> just <b><color=${booster}boosted</color></b> the server!`;
     case 9:
