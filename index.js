@@ -86,6 +86,7 @@ function formatMessage (channel, msg, author) {
     case 14:
     case 15:
     case 20:
+    default:
       return `Type of message (${msg.type}) not implemented. Please check yourself.`;
   }
 
@@ -136,12 +137,15 @@ function formatGroupDmTitle (channel, msg, author) {
     return `${author.username} (${channel.name})`;
   }
   let temp = '';
+  const recipients = [];
+  recipients.push(...channel.rawRecipients);
+  if (!recipients.filter(r => r.id === msg.author.id).length === 0) {
+    recipients.push(msg.author);
+  }
   for (const recipient of channel.recipients) {
     // please why does getUser has to be a promise
     // This is probably going to break. Fuck it for now.
-    const { rawRecipients } = channel;
-    rawRecipients.push(msg.author);
-    temp += `${getUserFromRawRecipients(recipient, rawRecipients).username}, `;
+    temp += `${getUserFromRawRecipients(recipient, recipients).username}, `;
   }
   temp = `(${temp.substring(0, temp.length - 2)})`;
   return temp;
