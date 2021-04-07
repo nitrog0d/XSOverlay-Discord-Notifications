@@ -53,7 +53,7 @@ function formatChannelMentions (content) {
   return content;
 }
 
-function formatMessage (channel, msg, author) {
+function formatMessage (msg, author) {
   let temp = msg.content;
 
   switch (msg.type) {
@@ -120,8 +120,7 @@ function formatMessage (channel, msg, author) {
 }
 
 function clearMessage (content) {
-  content = content.replace(new RegExp('<[^>]*>', 'g'), '');
-  return content;
+  return content.replace(new RegExp('<[^>]*>', 'g'), '');
 }
 
 function getUserFromRawRecipients (userId, recipients) {
@@ -132,9 +131,9 @@ function getUserFromRawRecipients (userId, recipients) {
   }
 }
 
-function formatGroupDmTitle (channel, msg, author) {
+function formatGroupDmTitle (channel, msg) {
   if (channel.name !== '') {
-    return `${author.username} (${channel.name})`;
+    return channel.name;
   }
   let temp = '';
   const recipients = [];
@@ -143,12 +142,9 @@ function formatGroupDmTitle (channel, msg, author) {
     recipients.push(msg.author);
   }
   for (const recipient of channel.recipients) {
-    // please why does getUser has to be a promise
-    // This is probably going to break. Fuck it for now.
     temp += `${getUserFromRawRecipients(recipient, recipients).username}, `;
   }
-  temp = `(${temp.substring(0, temp.length - 2)})`;
-  return temp;
+  return temp.substring(0, temp.length - 2);
 }
 
 function formatTitle (channel, msg, author) {
@@ -164,7 +160,7 @@ function formatTitle (channel, msg, author) {
     case 1:
       return author.username;
     case 3:
-      return `${author.username} ${formatGroupDmTitle(channel, msg, author)}`;
+      return `${author.username} (${formatGroupDmTitle(channel, msg)})`;
   }
 }
 
@@ -192,7 +188,7 @@ module.exports = class XSOverlayDiscordNotifications extends Plugin {
     inject('xsoverlay-discord-notifications', modules, 'makeTextChatNotification', args => {
       const [ channel, msg, author ] = args;
 
-      const formattedMessage = formatMessage(channel, msg, author);
+      const formattedMessage = formatMessage(msg, author);
 
       fetch(author.avatarURL).then(response => response.arrayBuffer()).then(buffer => {
         const data = JSON.stringify({
