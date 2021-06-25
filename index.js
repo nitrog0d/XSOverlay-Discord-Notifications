@@ -190,7 +190,7 @@ module.exports = class XSOverlayDiscordNotifications extends Plugin {
 
       const formattedMessage = formatMessage(msg, author);
 
-      fetch(author.avatarURL).then(response => response.arrayBuffer()).then(buffer => {
+      fetch(`https://cdn.discordapp.com/avatars/${author.id}/${author.avatar}.png?size=128`).then(response => response.arrayBuffer()).then(buffer => {
         const data = JSON.stringify({
           messageType: 1,
           index: 0,
