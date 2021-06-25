@@ -7,7 +7,7 @@ const dgram = require('dgram');
 const { getChannel } = getModule([ 'getChannel' ], false);
 const { getGuild } = getModule([ 'getGuild' ], false);
 
-const blurple = '#7289da';
+const blurple = '#5865f2';
 const booster = '#ff73fa';
 
 function sendToXSOverlay (data) {
@@ -85,7 +85,12 @@ function formatMessage (msg, author) {
       return `<b>${author.username}</b> has added <b>${msg.content}</b> notifications to this channel.`;
     case 14:
     case 15:
+    case 16:
+    case 17:
+    case 18:
     case 20:
+    case 21:
+    case 22:
     default:
       return `Type of message (${msg.type}) not implemented. Please check yourself.`;
   }
